@@ -1,39 +1,36 @@
 <template>
   <div class="cart-page">
     <h1>Giỏ hàng</h1>
-
-    <div v-for="course in cart" :key="course.id" class="cart-item">
-      <div class="course-main">
-        <div class="course-info">
-          <h3>{{ course.title }}</h3>
-          <p class="course-meta">
-            <span>Tác giả: {{ course.instructor }}</span> |
-            <span>Đánh giá:
+    <div class="cart-container">
+      <!-- Left: Course List -->
+      <div class="cart-items">
+        <div v-for="course in cart" :key="course.id" class="cart-item">
+          <img :src="course.image" alt="thumbnail" class="course-thumb" />
+          <div class="course-info">
+            <h3>{{ course.title }}</h3>
+            <p class="course-instructor">By {{ course.instructor }}</p>
+            <p class="course-rating">
               <span v-for="n in 5" :key="n" class="star" :class="{ filled: n <= course.rating }">★</span>
-              ({{ course.reviews.length }} đánh giá)
-            </span>
-          </p>
-          <p class="course-desc">{{ course.description }}</p>
-        </div>
-        <div class="course-actions">
-          <p class="course-price">{{ formatPrice(course.price * (1 - course.discount/100)) }}</p>
-          <el-button type="danger" size="small" @click="removeCourse(course.id)">Xóa</el-button>
+            </p>
+            <p class="course-price">{{ formatPrice(course.price * (1 - course.discount/100)) }}</p>
+          </div>
+          <el-button type="danger" size="small" @click="removeCourse(course.id)">Remove</el-button>
         </div>
       </div>
-      <hr/>
-    </div>
 
-    <div class="order-summary">
-      <h3>Tóm tắt đơn đặt hàng</h3>
-      <p>Giá gốc: {{ formatPrice(originalPrice) }}</p>
-      <p>Chiết khấu: -{{ formatPrice(discountAmount) }}</p>
-      <p><strong>Tổng tiền ({{ cart.length }} khóa học): {{ formatPrice(totalPrice) }}</strong></p>
-      <el-checkbox v-model="agreeTerms">
-        Bằng việc hoàn tất giao dịch mua, bạn đồng ý với các <a href="#">Điều khoản dịch vụ</a> này.
-      </el-checkbox>
-      <el-button type="primary" :disabled="!agreeTerms" style="margin-top: 15px" @click="checkout">
-        Thanh toán
-      </el-button>
+      <!-- Right: Order Summary -->
+      <div class="order-summary">
+        <h3>Order Summary</h3>
+        <p>Original Price: {{ formatPrice(originalPrice) }}</p>
+        <p>Discount: -{{ formatPrice(discountAmount) }}</p>
+        <p><strong>Total: {{ formatPrice(totalPrice) }}</strong></p>
+        <el-checkbox v-model="agreeTerms">
+          I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+        </el-checkbox>
+        <el-button type="primary" :disabled="!agreeTerms" @click="checkout" style="margin-top: 15px">
+          Proceed to Checkout
+        </el-button>
+      </div>
     </div>
   </div>
 </template>
@@ -41,196 +38,148 @@
 <script setup>
 import { ref, computed } from 'vue'
 
-// Dữ liệu test
 const cart = ref([
   {
     id: 1,
-    title: 'Vue 3 từ cơ bản đến nâng cao',
-    price: 599000,
-    discount: 20,
-    instructor: 'Nguyễn Văn A',
-    description: 'Học Vue 3 Composition API, Router, Pinia, tối ưu hiệu suất.',
-    rating: 4,
-    reviews: [{ user: 'Minh', rating: 5 }, { user: 'Lan', rating: 4 }],
+    title: 'The Complete 2024 Web Development Bootcamp',
+    price: 8499,
+    discount: 15,
+    instructor: 'Dr. Angela Yu',
+    rating: 5,
+    image: 'https://picsum.photos/100/70?random=1',
   },
   {
     id: 2,
-    title: 'ReactJS căn bản',
-    price: 499000,
-    discount: 15,
-    instructor: 'Trần Thị B',
-    description: 'Học ReactJS, Hooks, State Management, làm dự án thực tế.',
-    rating: 5,
-    reviews: [{ user: 'Huy', rating: 5 }],
-  },
-  {
-    id: 3,
-    title: 'NodeJS + Express',
-    price: 549000,
+    title: 'Mastering UX/UI Design with Figma',
+    price: 4999,
     discount: 10,
-    instructor: 'Lê Văn C',
-    description: 'Xây dựng API với NodeJS & Express, kết nối database.',
-    rating: 4,
-    reviews: [{ user: 'An', rating: 4 }],
+    instructor: 'Sarah Johnson',
+    rating: 5,
+    image: 'https://picsum.photos/100/70?random=2',
   },
 ])
 
-const formatPrice = (value) => value.toLocaleString('vi-VN') + '₫'
+const formatPrice = (value) => '$' + value.toFixed(2)
 
 const removeCourse = (id) => {
   cart.value = cart.value.filter(c => c.id !== id)
 }
 
-const originalPrice = computed(() =>
-    cart.value.reduce((sum, c) => sum + c.price, 0)
-)
-
-const discountAmount = computed(() =>
-    cart.value.reduce((sum, c) => sum + (c.price * c.discount / 100), 0)
-)
-
-const totalPrice = computed(() =>
-    originalPrice.value - discountAmount.value
-)
-
+const originalPrice = computed(() => cart.value.reduce((sum, c) => sum + c.price, 0))
+const discountAmount = computed(() => cart.value.reduce((sum, c) => sum + c.price * c.discount/100, 0))
+const totalPrice = computed(() => originalPrice.value - discountAmount.value)
 const agreeTerms = ref(false)
-
-const checkout = () => {
-  alert(`Thanh toán thành công: ${formatPrice(totalPrice.value)}`)
-}
+const checkout = () => alert(`Paid: ${formatPrice(totalPrice.value)}`)
 </script>
 
 <style scoped>
 .cart-page {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 30px auto;
   padding: 0 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', sans-serif;
 }
 
-/* Khóa học */
-.cart-item {
+.cart-container {
   display: flex;
-  flex-direction: column;
-  margin-bottom: 20px;
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.05);
-  padding: 15px 20px;
-  transition: transform 0.2s;
-}
-.cart-item:hover {
-  transform: translateY(-3px);
-}
-
-.course-main {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  gap: 20px;
   flex-wrap: wrap;
 }
 
+/* Left Column */
+.cart-items {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  padding: 10px 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  gap: 15px;
+}
+
+.course-thumb {
+  width: 100px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
 .course-info {
-  flex: 1 1 60%;
+  flex: 1;
 }
 
 .course-info h3 {
-  margin: 0 0 5px 0;
-  font-size: 1.2rem;
+  margin: 0;
+  font-size: 1rem;
   color: #333;
 }
 
-.course-meta {
+.course-instructor {
   font-size: 0.85rem;
   color: #666;
-  margin-bottom: 8px;
 }
 
-.course-desc {
-  font-size: 0.95rem;
-  color: #444;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2; /* 2 dòng */
-  -webkit-box-orient: vertical;
-}
-
-.star {
+.course-rating .star {
   color: #ccc;
+  font-size: 0.85rem;
 }
-.star.filled {
+.course-rating .filled {
   color: #f5a623;
-}
-
-/* Giá & nút xóa */
-.course-actions {
-  flex: 0 0 150px;
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 5px;
 }
 
 .course-price {
   font-weight: bold;
-  font-size: 1.1rem;
-  color: #409eff;
+  color: #111;
+  margin-top: 5px;
 }
 
-/* Order summary */
+/* Right Column */
 .order-summary {
-  border: 1px solid #eee;
+  flex: 1;
+  background: #fff;
+  padding: 20px;
   border-radius: 12px;
-  padding: 25px 20px;
-  margin-top: 30px;
-  background-color: #fdfdfd;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.03);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
 }
 
 .order-summary h3 {
+  margin-top: 0;
   margin-bottom: 15px;
-  font-size: 1.3rem;
-  color: #333;
 }
+
 .order-summary p {
   margin: 8px 0;
-  font-size: 1rem;
-  color: #555;
 }
+
 .order-summary strong {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   color: #111;
 }
+
 .order-summary a {
   color: #409eff;
   text-decoration: none;
 }
+
 .order-summary a:hover {
   text-decoration: underline;
 }
 
-/* Button thanh toán */
-.el-button {
-  border-radius: 8px;
-  padding: 12px 20px;
-  font-weight: 600;
-  transition: all 0.3s;
-}
-.el-button:disabled {
-  opacity: 0.6;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
-  .course-main {
+  .cart-container {
     flex-direction: column;
   }
-  .course-actions {
-    flex: 1 1 100%;
+  .cart-item {
+    flex-direction: column;
     align-items: flex-start;
-    margin-top: 10px;
   }
 }
 </style>
-

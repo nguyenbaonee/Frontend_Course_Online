@@ -264,12 +264,12 @@ const handleNotification = () => {
 }
 
 const handleLogin = () => {
-  router.push('/login')
+  router.push('/auth/login')
   drawer.value = false
 }
 
 const handleRegister = () => {
-  router.push('/register')
+  router.push('/auth/register')
   drawer.value = false
 }
 
@@ -288,7 +288,7 @@ const executeCommand = (command) => {
       router.push('/profile')
       break
     case 'my-courses':
-      router.push('/my-courses')
+      router.push('/purchased')
       break
     case 'wishlist':
       router.push('/wishlist')

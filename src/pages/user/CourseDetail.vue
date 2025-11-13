@@ -1,178 +1,273 @@
 <template>
-  <div class="course-detail" v-if="course">
-    <div class="course-main">
-      <img :src="course.image" alt="" class="course-image"/>
-      <div class="course-info">
+  <div class="course-page" v-if="course">
+    <!-- Header -->
+    <div class="course-header">
+      <div class="course-left">
         <h1 class="course-title">{{ course.title }}</h1>
-
-        <!-- Rating -->
-        <div class="course-rating">
-          <span v-for="n in 5" :key="n">
-            <i class="star" :class="{ filled: n <= course.rating }">★</i>
-          </span>
-          <span>({{ course.reviews.length }} đánh giá)</span>
-        </div>
-
-        <!-- Giá & discount -->
-        <p class="course-price">
-          <span v-if="course.discount">
-            <del>{{ formatPrice(course.price) }}</del>
-            <strong>{{ formatPrice(course.price * (1 - course.discount / 100)) }}</strong>
-          </span>
-          <span v-else>{{ formatPrice(course.price) }}</span>
+        <p class="course-sub">
+          Learn Web Development by building 25 websites and mobile apps using HTML, CSS,
+          JavaScript, PHP, Python, MySQL & more!
         </p>
-
-        <!-- Action buttons -->
-        <div class="course-actions">
-          <el-button type="success" @click="addToCart">Thêm vào giỏ hàng</el-button>
-          <el-button type="primary" @click="buyNow">Mua ngay</el-button>
+        <div class="course-meta">
+          <el-tag type="success" effect="plain">Best Seller</el-tag>
+          <span class="rating">
+            <el-rate v-model="course.rating" disabled show-score text-color="#ff9900" />
+            <span>({{ course.reviews.length }} ratings · {{ course.students }} students)</span>
+          </span>
         </div>
-
-        <!-- Quick info -->
-        <ul class="course-meta">
-          <li><strong>Level:</strong> {{ course.level }}</li>
-          <li><strong>Thời lượng:</strong> {{ course.duration }}</li>
-          <li><strong>Giảng viên:</strong> {{ course.instructor }}</li>
-        </ul>
+      </div>
+      <div class="course-right">
+        <el-card class="course-card" shadow="hover">
+          <img :src="course.image" alt="preview" class="preview" />
+          <div class="price-box">
+            <span class="discounted">{{ formatPrice(course.price * (1 - course.discount / 100)) }}</span>
+            <del class="original">{{ formatPrice(course.price) }}</del>
+            <span class="discount">({{ course.discount }}% OFF)</span>
+          </div>
+          <p class="time-left">⏰ 2 days left at this price!</p>
+          <el-button type="primary" class="btn-buy" @click="buyNow">Buy Now</el-button>
+          <el-button type="success" class="btn-cart" @click="addToCart">Add to Cart</el-button>
+          <p class="wishlist">❤️ Add to Wishlist</p>
+          <ul class="includes">
+            <li>✔ 12 hours on-demand video</li>
+            <li>✔ 45 downloadable resources</li>
+            <li>✔ Full lifetime access</li>
+            <li>✔ Access on mobile and TV</li>
+            <li>✔ Certificate of completion</li>
+          </ul>
+        </el-card>
       </div>
     </div>
 
-    <!-- Tabs thông tin khóa học -->
-    <div class="course-tabs">
-      <el-tabs v-model="activeTab">
-        <el-tab-pane label="Mô tả" name="description">
-          <p>{{ course.description }}</p>
-        </el-tab-pane>
-        <el-tab-pane label="Yêu cầu" name="requirements">
-          <ul>
-            <li v-for="(req, index) in course.requirements" :key="index">{{ req }}</li>
-          </ul>
-        </el-tab-pane>
-        <el-tab-pane label="Đánh giá" name="reviews">
-          <div v-for="review in course.reviews" :key="review.id" class="review-item">
-            <strong>{{ review.user }}</strong>
-            <span class="review-rating">
-              <span v-for="n in 5" :key="n" class="star" :class="{ filled: n <= review.rating }">★</span>
-            </span>
-            <p>{{ review.comment }}</p>
-          </div>
-        </el-tab-pane>
-      </el-tabs>
+    <!-- What you'll learn -->
+    <div class="learn-section">
+      <h2>What you'll learn</h2>
+      <div class="learn-grid">
+        <div v-for="(item, index) in course.learn" :key="index" class="learn-item">
+          <i class="el-icon-check"></i> {{ item }}
+        </div>
+      </div>
     </div>
+
+    <!-- Tabs -->
+    <el-tabs v-model="activeTab" class="tabs-section">
+      <el-tab-pane label="Description" name="description">
+        <p>{{ course.description }}</p>
+      </el-tab-pane>
+      <el-tab-pane label="Curriculum" name="curriculum">
+        <el-collapse accordion>
+          <el-collapse-item title="Section 1: Introduction">
+            <ul>
+              <li>Welcome to the Course (10:32)</li>
+              <li>Setting Up Your Environment (08:35)</li>
+              <li>Course Project Overview (04:45)</li>
+            </ul>
+          </el-collapse-item>
+          <el-collapse-item title="Section 2: HTML 5"></el-collapse-item>
+          <el-collapse-item title="Section 3: CSS 3"></el-collapse-item>
+        </el-collapse>
+      </el-tab-pane>
+      <el-tab-pane label="Instructor" name="instructor">
+        <div class="instructor">
+          <img :src="course.instructorAvatar" alt="" class="avatar" />
+          <div>
+            <h3>{{ course.instructor }}</h3>
+            <p>{{ course.instructorTitle }}</p>
+            <p>{{ course.instructorBio }}</p>
+          </div>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="Reviews" name="reviews">
+        <div v-for="review in course.reviews" :key="review.id" class="review-item">
+          <strong>{{ review.user }}</strong>
+          <el-rate v-model="review.rating" disabled />
+          <p>{{ review.comment }}</p>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 
-  <div v-else>Đang tải khóa học...</div>
+  <div v-else class="loading">Loading course...</div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-// MOCK DATA nâng cấp
-const coursesList = [
-  {
-    id: 1,
-    title: 'Vue 3 từ cơ bản đến nâng cao',
-    description: 'Học Vue 3 Composition API, Router, Pinia, và tối ưu hiệu suất.',
-    price: 599000,
-    discount: 20,
-    level: 'Nâng cao',
-    duration: '20 giờ',
-    instructor: 'Nguyễn Văn A',
-    image: 'https://picsum.photos/400/200?random=1',
-    requirements: ['Có kiến thức cơ bản về HTML/CSS', 'Hiểu JS cơ bản'],
-    rating: 4,
-    reviews: [
-      { id: 1, user: 'Minh', rating: 5, comment: 'Khóa học rất hay!' },
-      { id: 2, user: 'Lan', rating: 4, comment: 'Học xong áp dụng được ngay.' },
-    ],
-  },
-  {
-    id: 2,
-    title: 'ReactJS căn bản',
-    description: 'Học ReactJS, Hooks, State Management, và làm dự án thực tế.',
-    price: 499000,
-    discount: 15,
-    level: 'Cơ bản',
-    duration: '15 giờ',
-    instructor: 'Trần Thị B',
-    image: 'https://picsum.photos/400/200?random=2',
-    requirements: ['Biết JS cơ bản', 'Hiểu HTML/CSS'],
-    rating: 5,
-    reviews: [
-      { id: 1, user: 'Huy', rating: 5, comment: 'Rất dễ hiểu!' },
-    ],
-  },
-]
-
 const route = useRoute()
 const router = useRouter()
+
 const course = ref(null)
-const cart = ref([])
 const activeTab = ref('description')
 
-const courseId = Number(route.params.id)
+const courses = [
+  {
+    id: 1,
+    title: 'The Complete Web Developer Course 2.0',
+    description:
+        'Learn full-stack web development by building real-world websites and mobile apps using HTML, CSS, JS, PHP, Python, and MySQL.',
+    price: 64.99,
+    discount: 82,
+    rating: 4.7,
+    students: 125000,
+    instructor: 'John Doe',
+    instructorTitle: 'Web Developer, Designer, and Teacher',
+    instructorBio:
+        'John has been a web developer for over 10 years, working for top tech companies. He is passionate about helping students achieve their tech career goals.',
+    instructorAvatar: 'https://i.pravatar.cc/100?img=12',
+    image: 'https://picsum.photos/400/250?random=11',
+    learn: [
+      'Build 25 beautiful, modern websites and mobile apps',
+      'Master front-end development with HTML, CSS & JavaScript',
+      'Learn back-end development with PHP, Python & Node.js',
+      'Understand databases like MySQL and PostgreSQL',
+      'Develop skills to become a freelance web developer',
+      'Get a job as a junior web developer'
+    ],
+    reviews: [
+      { id: 1, user: 'Minh', rating: 5, comment: 'Tuyệt vời! Giảng viên dạy dễ hiểu.' },
+      { id: 2, user: 'Lan', rating: 4, comment: 'Nội dung đầy đủ, chi tiết.' }
+    ]
+  }
+]
 
 onMounted(() => {
-  course.value = coursesList.find(c => c.id === courseId)
+  const courseId = Number(route.params.id) || 1
+  course.value = courses.find(c => c.id === courseId)
 })
 
-const formatPrice = (value) => value.toLocaleString('vi-VN') + '₫'
+const formatPrice = value => '$' + value.toFixed(2)
 
 const addToCart = () => {
-  cart.value.push(course.value)
   router.push('/cart')
 }
 
 const buyNow = () => {
-  cart.value.push(course.value)
   router.push('/checkout')
 }
 </script>
 
 <style scoped>
-.course-main {
-  display: flex;
-  gap: 20px;
+.course-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  font-family: 'Inter', sans-serif;
 }
-.course-image {
-  width: 400px;
-  border-radius: 8px;
+.course-header {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  margin-bottom: 50px;
+}
+.course-left {
+  flex: 1;
+}
+.course-right {
+  width: 360px;
 }
 .course-title {
   font-size: 2rem;
+  font-weight: 700;
   margin-bottom: 10px;
 }
-.course-rating .star {
-  color: #ccc;
-  margin-right: 2px;
+.course-sub {
+  color: #555;
+  margin-bottom: 15px;
 }
-.course-rating .star.filled {
-  color: #f5a623;
+.course-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
-.course-price del {
+.course-card {
+  padding: 0;
+  overflow: hidden;
+}
+.preview {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+.price-box {
+  margin: 15px;
+  font-size: 1.2rem;
+}
+.discounted {
+  color: #1e88e5;
+  font-weight: 700;
+  margin-right: 10px;
+}
+.original {
   color: #999;
   margin-right: 10px;
 }
-.course-actions {
-  margin: 20px 0;
-  display: flex;
-  gap: 10px;
+.discount {
+  color: #f56c6c;
 }
-.course-meta {
+.time-left {
+  color: #e53935;
+  font-size: 0.9rem;
+  margin-left: 15px;
+}
+.btn-buy,
+.btn-cart {
+  width: 90%;
+  margin: 10px 5%;
+}
+.wishlist {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 5px;
+}
+.includes {
   list-style: none;
-  padding: 0;
-  margin-top: 10px;
+  padding: 10px 25px;
+  font-size: 0.9rem;
+  color: #333;
 }
-.course-meta li {
+.includes li {
   margin-bottom: 5px;
+}
+
+.learn-section {
+  margin: 40px 0;
+}
+.learn-section h2 {
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+.learn-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px 20px;
+}
+.learn-item {
+  background: #f9fafc;
+  padding: 10px 15px;
+  border-radius: 8px;
+}
+.tabs-section {
+  margin-top: 30px;
+}
+.instructor {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 10px;
+}
+.instructor .avatar {
+  width: 100px;
+  border-radius: 50%;
 }
 .review-item {
   border-bottom: 1px solid #eee;
   padding: 10px 0;
 }
-.review-rating .star {
-  color: #f5a623;
-  margin-right: 2px;
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 1.2rem;
 }
 </style>
