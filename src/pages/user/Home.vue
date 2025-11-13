@@ -131,13 +131,22 @@ const formatPrice = (value) =>
 
 /* 🟦 HERO */
 .hero {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
   background: linear-gradient(135deg, #409eff, #66b1ff);
   color: white;
   text-align: center;
   border-radius: 0 0 40px 40px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-  overflow: hidden;
+  padding: 20px;
+
+  width: 100vw; /* full viewport width */
+  max-width: 100%; /* tránh overflow */
+}
+.hero >>> .el-carousel {
+  width: 100%; /* full width */
+  max-width: 1200px; /* optional: giới hạn chiều ngang */
 }
 
 .hero-image {
@@ -148,13 +157,8 @@ const formatPrice = (value) =>
 }
 
 .hero-content {
-  position: absolute;
-  top: 55%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  text-align: center;
-  background: rgba(0, 0, 0, 0.3);
+  position: relative; /* không cần absolute */
+  background: rgba(0,0,0,0.3);
   padding: 25px 40px;
   border-radius: 20px;
   backdrop-filter: blur(3px);
