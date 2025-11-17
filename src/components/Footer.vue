@@ -3,20 +3,20 @@
     <div class="footer-container">
       <!-- Cột 1 -->
       <div class="footer-section">
-        <h2 class="footer-logo">📘 EduNovel</h2>
+        <h2 class="footer-logo">EduNovel</h2>
         <p class="footer-desc">
-          Empowering learners through accessible, high-quality online education.
+          Nền tảng giáo dục uy tín và chất lượng cao, hãy trao niềm tin để nhận cơ hội.
         </p>
       </div>
 
       <!-- Cột 2 -->
       <div class="footer-section">
-        <h3>Navigation</h3>
+        <h3>Điều hướng</h3>
         <ul>
-          <li><a href="#">Home</a></li>
-          <li><a href="#">All Courses</a></li>
+          <li><a href="#">Trang chủ</a></li>
+          <li><a href="#">Tất cả các khóa học</a></li>
           <li><a href="#">Blog</a></li>
-          <li><a href="#">Pricing</a></li>
+          <li><a href="#">Giới thiệu</a></li>
         </ul>
       </div>
 
@@ -24,20 +24,18 @@
       <div class="footer-section">
         <h3>About Us</h3>
         <ul>
-          <li><a href="#">Our Story</a></li>
-          <li><a href="#">Careers</a></li>
-          <li><a href="#">Contact Us</a></li>
-          <li><a href="#">FAQ</a></li>
+          <li><a href="#">Tuyển dụng</a></li>
+          <li><a href="#">Liên hệ</a></li>
         </ul>
       </div>
 
       <!-- Cột 4 -->
       <div class="footer-section">
-        <h3>Stay Updated</h3>
-        <p>Get the latest courses and news delivered to your inbox.</p>
+        <h3>Ưu đãi dành riêng cho bạn</h3>
+        <p>Bạn muốn nhận thông báo qua đâu</p>
         <div class="subscribe">
-          <input type="email" placeholder="Enter your email" />
-          <button>Subscribe</button>
+          <input type="email" placeholder="Nhập email của bạn..." />
+          <button>Đăng ký</button>
         </div>
       </div>
     </div>

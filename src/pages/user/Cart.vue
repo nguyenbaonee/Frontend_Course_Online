@@ -14,21 +14,21 @@
             </p>
             <p class="course-price">{{ formatPrice(course.price * (1 - course.discount/100)) }}</p>
           </div>
-          <el-button type="danger" size="small" @click="removeCourse(course.id)">Remove</el-button>
+          <el-button type="danger" size="small" @click="removeCourse(course.id)">Xóa</el-button>
         </div>
       </div>
 
       <!-- Right: Order Summary -->
       <div class="order-summary">
-        <h3>Order Summary</h3>
-        <p>Original Price: {{ formatPrice(originalPrice) }}</p>
-        <p>Discount: -{{ formatPrice(discountAmount) }}</p>
-        <p><strong>Total: {{ formatPrice(totalPrice) }}</strong></p>
+        <h3>Đơn hàng</h3>
+        <p>Giá tiền: {{ formatPrice(originalPrice) }}</p>
+        <p>Giảm giá: -{{ formatPrice(discountAmount) }}</p>
+        <p><strong>Tổng: {{ formatPrice(totalPrice) }}</strong></p>
         <el-checkbox v-model="agreeTerms">
-          I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.
+         Tôi đồng ý <a href="#">Điều khoản dịch vụ</a> và <a href="#">Chính sách bảo mật</a>.
         </el-checkbox>
         <el-button type="primary" :disabled="!agreeTerms" @click="checkout" style="margin-top: 15px">
-          Proceed to Checkout
+          Thanh toán
         </el-button>
       </div>
     </div>

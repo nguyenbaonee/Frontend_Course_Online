@@ -8,7 +8,7 @@
         </el-carousel-item>
       </el-carousel>
       <div class="hero-content">
-        <h1>Khám phá tri thức – Mở khóa tương lai của bạn 🔑</h1>
+        <h1>Khám phá tri thức – Mở khóa tương lai của bạn </h1>
         <p>Hàng trăm khóa học chất lượng cao từ giảng viên hàng đầu.</p>
         <el-button type="warning" size="large" round>Khám phá ngay</el-button>
       </div>
@@ -16,7 +16,7 @@
 
     <!-- 🎓 Featured Courses -->
     <section class="featured">
-      <h2>Khóa học nổi bật 🔥</h2>
+      <h2>Khóa học nổi bật</h2>
       <el-row :gutter="20">
         <el-col :span="8" v-for="course in courses" :key="course.id">
           <div class="course-wrapper"

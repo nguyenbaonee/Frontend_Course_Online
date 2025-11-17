@@ -6,8 +6,8 @@
         <p>Please login to your account</p>
       </div>
       <el-form :model="form" @submit.prevent="handleLogin" class="auth-form">
-        <el-form-item label="Email">
-          <el-input v-model="form.email" placeholder="Email" prefix-icon="el-icon-user" />
+        <el-form-item label="email">
+          <el-input v-model="form.email" placeholder="email" prefix-icon="el-icon-user" />
         </el-form-item>
         <el-form-item label="Password">
           <el-input type="password" v-model="form.password" placeholder="Password" prefix-icon="el-icon-lock" />

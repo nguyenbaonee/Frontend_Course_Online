@@ -233,7 +233,7 @@ const activeIndex = computed(() => route.path)
 // Mock user data - thay bằng store/composable thực tế
 const isAuthenticated = ref(true) // Đổi thành false để test trạng thái chưa đăng nhập
 const user = ref({
-  name: 'Nguyễn Văn A',
+  name: 'Nguyễn Văn Bảo',
   email: 'nguyenvana@email.com',
   avatar: 'https://i.pravatar.cc/150?img=12'
 })
