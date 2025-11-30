@@ -6,14 +6,14 @@
         <p>Please login to your account</p>
       </div>
       <el-form :model="form" @submit.prevent="handleLogin" class="auth-form">
-        <el-form-item label="email">
-          <el-input v-model="form.email" placeholder="email" prefix-icon="el-icon-user" />
+        <el-form-item label="Username">
+          <el-input v-model="form.username" placeholder="Username" prefix-icon="el-icon-user" />
         </el-form-item>
         <el-form-item label="Password">
           <el-input type="password" v-model="form.password" placeholder="Password" prefix-icon="el-icon-lock" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="handleLogin" class="login-btn" :round="true" >Login</el-button>
+          <el-button type="primary" @click="handleLogin" class="login-btn" :round="true">Login</el-button>
         </el-form-item>
       </el-form>
       <div class="links">
@@ -27,16 +27,56 @@
 <script setup>
 import { reactive } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
-const form = reactive({ email: '', password: '' })
+const form = reactive({ username: '', password: '' })
 const router = useRouter()
 
-const handleLogin = () => {
-  if (form.email.includes('admin')) router.push('/admin')
-  else router.push('/')
-}
-</script>
+const handleLogin = async () => {
+  if (!form.username || !form.password) {
+    alert('Vui lòng nhập Tên người dùng và Mật khẩu')
+    return
+  }
 
+  try {
+    const res = await axios.post('http://localhost:8092/iam-service/auth/login', {
+      username: form.username,
+      password: form.password
+    })
+
+    const token = res.data.result.token
+    const refreshToken = res.data.result.refreshToken
+
+    // lưu token
+    localStorage.setItem('accessToken', token)
+    localStorage.setItem('refreshToken', refreshToken)
+
+    const parseJwt = (token) => {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      return JSON.parse(atob(base64))
+    }
+
+    const payload = parseJwt(token)
+    const role = payload.scope // hoặc payload.roles tùy BE
+    if (payload) {
+      localStorage.setItem('userId', payload.userId)
+      localStorage.setItem('username', payload.sub)
+      localStorage.setItem('role', payload.scope)
+    }
+
+    if (role === 'ROLE_ADMIN') {
+      await router.push('/dashboard')
+    } else {
+      await router.push('/')
+    }
+  } catch (err) {
+    console.error(err)
+    alert(err.response?.data?.message || 'Login failed')
+  }
+}
+
+</script>
 <style scoped>
 /* Wrapper full screen, gradient background */
 .auth-wrapper {

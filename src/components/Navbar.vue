@@ -10,7 +10,6 @@
           <span class="logo-text">EduNovel</span>
         </router-link>
 
-        <!-- Desktop Navigation -->
         <el-menu
             :default-active="activeIndex"
             class="nav-menu"
@@ -38,25 +37,27 @@
         />
 
         <!-- Cart -->
-        <el-badge :value="cartCount" :hidden="cartCount === 0" class="navbar-badge">
+        <!-- Cart -->
+        <el-badge v-if="isAuthenticated" :value="cartCount" :hidden="cartCount === 0" class="navbar-badge">
           <el-button circle @click="handleCart">
             <el-icon><ShoppingCart /></el-icon>
           </el-button>
         </el-badge>
 
         <!-- Notification -->
-        <el-badge :value="notificationCount" :hidden="notificationCount === 0" class="navbar-badge">
+        <el-badge v-if="isAuthenticated" :value="notificationCount" :hidden="notificationCount === 0" class="navbar-badge">
           <el-button circle @click="handleNotification">
             <el-icon><Bell /></el-icon>
           </el-button>
         </el-badge>
+
 
         <!-- User Menu / Auth Buttons -->
         <div v-if="isAuthenticated" class="user-section">
           <el-dropdown trigger="click" @command="handleCommand">
             <div class="user-info">
               <el-avatar :src="user.avatar" :size="40">
-                {{ user.name.charAt(0) }}
+                {{ userName }}
               </el-avatar>
               <span class="user-name">{{ user.name }}</span>
               <el-icon class="arrow-icon"><ArrowDown /></el-icon>
@@ -151,7 +152,7 @@
     <div v-if="isAuthenticated" class="mobile-user-section">
       <el-card shadow="never" :body-style="{ padding: '16px' }">
         <div class="mobile-user-info">
-          <el-avatar :src="user.avatar" :size="60">
+          <el-avatar :src="image.avatar" :size="60">
             {{ user.name.charAt(0) }}
           </el-avatar>
           <div class="mobile-user-details">
@@ -198,167 +199,163 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import {
-  Search,
-  ShoppingCart,
-  Bell,
-  User,
-  Reading,
-  Star,
-  Setting,
-  SwitchButton,
-  ArrowDown,
-  Menu,
-  HomeFilled,
-  UserFilled,
-  Document
+  Search, ShoppingCart, Bell, User, Reading,
+  Star, Setting, SwitchButton, ArrowDown,
+  Menu, HomeFilled, UserFilled, Document
 } from '@element-plus/icons-vue'
+import image from "../assets/images/images.js";
 
 const router = useRouter()
 const route = useRoute()
 
-// State
+// Navbar state
 const searchQuery = ref('')
 const drawer = ref(false)
 const navbarHeight = '64px'
 const cartCount = ref(3)
 const notificationCount = ref(5)
-
-// Active menu index
 const activeIndex = computed(() => route.path)
 
-// Mock user data - thay bằng store/composable thực tế
-const isAuthenticated = ref(true) // Đổi thành false để test trạng thái chưa đăng nhập
 const user = ref({
-  name: 'Nguyễn Văn Bảo',
-  email: 'nguyenvana@email.com',
-  avatar: 'https://i.pravatar.cc/150?img=12'
+  id: null,
+  name: '',
+  email: '',
 })
 
-// Methods
-const handleSelect = (index) => {
-  router.push(index)
+// Check if user is authenticated
+const isAuthenticated = computed(() => !!localStorage.getItem('accessToken'))
+
+// Fetch user info from API
+const fetchMyInfo = async () => {
+  const token = localStorage.getItem('accessToken')
+  if (!token) return
+
+  try {
+    const { data } = await axios.get('http://localhost:8092/iam-service/users/my-info', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+
+    user.value = {
+      id: data.id,
+      name: data.username,
+      email: data.email || '',
+      avatar: '' // default avatar
+    }
+  } catch (err) {
+    console.error('Failed to fetch user info', err)
+    handleLogout()
+  }
 }
 
-const handleMobileSelect = (index) => {
-  router.push(index)
-  drawer.value = false
-}
+// Fetch user info on mounted if logged in
+onMounted(() => {
+  if (isAuthenticated.value) {
+    fetchMyInfo()
+  }
+})
 
+// Navbar actions
+const handleSelect = (index) => router.push(index)
+const handleMobileSelect = (index) => { router.push(index); drawer.value = false }
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
     router.push({ name: 'search', query: { q: searchQuery.value } })
     drawer.value = false
   }
 }
-
-const handleCart = () => {
-  router.push('/cart')
-}
-
-const handleNotification = () => {
-  router.push('/notifications')
-}
-
-const handleLogin = () => {
-  router.push('/auth/login')
-  drawer.value = false
-}
-
-const handleRegister = () => {
-  router.push('/auth/register')
-  drawer.value = false
-}
-
-const handleCommand = (command) => {
-  executeCommand(command)
-}
-
-const handleMobileCommand = (command) => {
-  drawer.value = false
-  executeCommand(command)
-}
+const handleCart = () => router.push('/cart')
+const handleNotification = () => router.push('/notifications')
+const handleLogin = () => { router.push('/auth/login'); drawer.value = false }
+const handleRegister = () => { router.push('/auth/register'); drawer.value = false }
 
 const executeCommand = (command) => {
   switch (command) {
-    case 'profile':
-      router.push('/profile')
-      break
-    case 'my-courses':
-      router.push('/purchased')
-      break
-    case 'wishlist':
-      router.push('/wishlist')
-      break
-    case 'settings':
-      router.push('/settings')
-      break
-    case 'logout':
-      handleLogout()
-      break
+    case 'profile': router.push('/profile'); break
+    case 'my-courses': router.push('/purchased'); break
+    case 'wishlist': router.push('/wishlist'); break
+    case 'settings': router.push('/settings'); break
+    case 'logout': handleLogout(); break
   }
 }
 
-const handleLogout = () => {
-  ElMessage.success('Đăng xuất thành công')
-  // Thực hiện logout logic
-  isAuthenticated.value = false
-  router.push('/')
+const handleCommand = (command) => executeCommand(command)
+const handleMobileCommand = (command) => { drawer.value = false; executeCommand(command) }
+
+// Logout
+const handleLogout = async () => {
+  try {
+    const token = localStorage.getItem('accessToken')
+    if (token) {
+      await axios.post('http://localhost:8092/iam-service/auth/logout', {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+    }
+  } catch (err) {
+    console.error(err)
+  } finally {
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+    router.push('/auth/login')
+  }
 }
 </script>
 
 <style scoped lang="scss">
 .navbar {
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: #f9f9ff; // màu sáng hơn, dịu mắt
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); // shadow mềm hơn
   position: sticky;
   top: 0;
   z-index: 1000;
   border-bottom: none;
+  height: 80px; // tăng chiều cao navbar
 }
 
 .navbar-container {
-  max-width: 1280px;
+  max-width: 1400px; // rộng hơn
   margin: 0 auto;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  padding: 0 32px; // padding rộng ra
 }
 
 .navbar-left {
   display: flex;
   align-items: center;
-  gap: 40px;
+  gap: 50px; // rộng ra hơn
   flex: 1;
 }
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   text-decoration: none;
   color: inherit;
   flex-shrink: 0;
 
   .logo-icon {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 10px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #fff;
+    font-size: 22px;
   }
 
   .logo-text {
-    font-size: 20px;
-    font-weight: 700;
+    font-size: 22px;
+    font-weight: 800;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -374,16 +371,19 @@ const handleLogout = () => {
   }
 
   :deep(.el-menu-item) {
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 16px;
+    color: #555;
 
     &.is-active {
       color: #667eea;
-      border-bottom-color: #667eea;
+      border-bottom: 2px solid #667eea;
     }
 
     &:hover {
-      color: #667eea;
-      background-color: transparent;
+      color: #764ba2;
+      background: linear-gradient(90deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+      border-radius: 8px;
     }
   }
 }
@@ -391,15 +391,15 @@ const handleLogout = () => {
 .navbar-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   flex-shrink: 0;
 }
 
 .search-input {
-  width: 280px;
+  width: 300px;
 
   @media (max-width: 1200px) {
-    width: 200px;
+    width: 220px;
   }
 
   @media (max-width: 968px) {
@@ -422,19 +422,19 @@ const handleLogout = () => {
 .user-info {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 8px;
+  padding: 6px 12px;
+  border-radius: 12px;
   transition: all 0.3s;
 
   &:hover {
-    background-color: var(--el-fill-color-light);
+    background: linear-gradient(90deg, rgba(102,126,234,0.15), rgba(118,75,162,0.15));
   }
 
   .user-name {
-    font-weight: 500;
-    color: var(--el-text-color-primary);
+    font-weight: 600;
+    color: #333;
 
     @media (max-width: 1200px) {
       display: none;
@@ -442,13 +442,17 @@ const handleLogout = () => {
   }
 
   .arrow-icon {
-    color: var(--el-text-color-secondary);
+    color: #888;
   }
 }
 
 .auth-buttons {
   @media (max-width: 768px) {
     display: none;
+  }
+
+  .el-button {
+    font-weight: 600;
   }
 }
 
@@ -468,7 +472,7 @@ const handleLogout = () => {
 .mobile-user-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 18px;
 }
 
 .mobile-user-details {
@@ -476,26 +480,34 @@ const handleLogout = () => {
 }
 
 .mobile-user-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--el-text-color-primary);
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
   margin-bottom: 4px;
 }
 
 .mobile-user-email {
   font-size: 14px;
-  color: var(--el-text-color-secondary);
+  color: #666;
 }
 
 // Dropdown Menu Styles
 :deep(.el-dropdown-menu__item) {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
+  gap: 10px;
+  padding: 12px 24px;
+  font-weight: 500;
+  font-size: 15px;
+  border-radius: 8px;
+  transition: background 0.2s;
+
+  &:hover {
+    background: linear-gradient(90deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+  }
 
   .el-icon {
-    font-size: 16px;
+    font-size: 18px;
   }
 }
 </style>

@@ -5,15 +5,24 @@
         <h2>Create Account</h2>
         <p>Join us and start learning today</p>
       </div>
-      <el-form :model="form" @submit.prevent="handleRegister" class="auth-form">
-        <el-form-item label="Name">
-          <el-input v-model="form.name" placeholder="Name" prefix-icon="el-icon-user" />
+      <el-form :model="form" :rules="rules" ref="formRef" class="auth-form">
+        <el-form-item label="Username" prop="username">
+          <el-input v-model="form.username" placeholder="Username" prefix-icon="el-icon-user" />
         </el-form-item>
-        <el-form-item label="Email">
+        <el-form-item label="First Name" prop="firstName">
+          <el-input v-model="form.firstName" placeholder="First Name" />
+        </el-form-item>
+        <el-form-item label="Last Name" prop="lastName">
+          <el-input v-model="form.lastName" placeholder="Last Name" />
+        </el-form-item>
+        <el-form-item label="Email" prop="email">
           <el-input v-model="form.email" placeholder="Email" prefix-icon="el-icon-message" />
         </el-form-item>
-        <el-form-item label="Password">
+        <el-form-item label="Password" prop="password">
           <el-input type="password" v-model="form.password" placeholder="Password" prefix-icon="el-icon-lock" />
+        </el-form-item>
+        <el-form-item label="Date of Birth" prop="dob">
+          <el-date-picker v-model="form.dob" type="date" placeholder="Select date" style="width: 100%;" />
         </el-form-item>
         <el-form-item>
           <el-button type="success" class="register-btn" :round="true" @click="handleRegister">
@@ -29,15 +38,58 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
-const form = reactive({ name: '', email: '', password: '' })
 const router = useRouter()
+const formRef = ref(null)
+
+const form = reactive({
+  username: '',
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+  dob: ''
+})
+
+// Rules validation
+const rules = {
+  username: [{ required: true, message: 'Username is required', trigger: 'blur' }],
+  firstName: [
+    { required: true, message: 'First Name is required', trigger: 'blur' },
+    { pattern: /^[a-zA-ZÀ-ỹ\s]+$/, message: 'Only Vietnamese letters allowed', trigger: 'blur' }
+  ],
+  lastName: [
+    { required: true, message: 'Last Name is required', trigger: 'blur' },
+    { pattern: /^[a-zA-ZÀ-ỹ\s]+$/, message: 'Only Vietnamese letters allowed', trigger: 'blur' }
+  ],
+  email: [
+    { required: true, message: 'Email is required', trigger: 'blur' },
+    { type: 'email', message: 'Email is not valid', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: 'Password is required', trigger: 'blur' },
+    { min: 6, message: 'Password must be at least 6 characters', trigger: 'blur' }
+  ],
+  dob: [{ required: true, message: 'Date of Birth is required', trigger: 'change' }]
+}
 
 const handleRegister = () => {
-  alert(`Registered: ${form.name} - ${form.email}`)
-  router.push('/auth/login')
+  formRef.value.validate(async (valid) => {
+    if (!valid) return
+
+    try {
+      const payload = { ...form }
+      await axios.post('http://localhost:8082/users', payload)
+      alert('Register success')
+      router.push('/auth/login')
+    } catch (err) {
+      console.error(err)
+      alert(err.response?.data?.message || 'Register failed')
+    }
+  })
 }
 </script>
 

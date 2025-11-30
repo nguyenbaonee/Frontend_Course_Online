@@ -10,7 +10,7 @@
       <div class="hero-content">
         <h1>Khám phá tri thức – Mở khóa tương lai của bạn </h1>
         <p>Hàng trăm khóa học chất lượng cao từ giảng viên hàng đầu.</p>
-        <el-button type="warning" size="large" round>Khám phá ngay</el-button>
+        <el-button type="warning" size="large" round @click="handleExplore">Khám phá ngay</el-button>
       </div>
     </section>
 
@@ -32,7 +32,7 @@
                 <span class="old-price" v-if="course.discount">{{ formatPrice(course.price) }}</span>
                 <span class="new-price">{{ formatPrice(discounted(course)) }}</span>
               </div>
-              <router-link :to="`/test/${course.id}`">
+              <router-link :to="`/course/${course.id}`">
                 <el-button type="primary" size="small">Xem chi tiết</el-button>
               </router-link>
             </el-card>
@@ -66,7 +66,22 @@
 
 <script setup>
 import { ref } from 'vue'
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
+
+const isAuthenticated = computed(() => !!localStorage.getItem('accessToken'))
+
+const handleExplore = () => {
+  if (isAuthenticated.value) {
+    // Nếu đã login → chuyển đến trang courses
+    router.push('/courses')
+  } else {
+    // Nếu chưa login → chuyển đến login
+    router.push('/auth/login')
+  }
+}
 /* 🖼 Banner auto slide */
 const banners = [
   'https://images.unsplash.com/photo-1503676260728-1c00da094a0b',
@@ -74,7 +89,7 @@ const banners = [
   'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61'
 ]
 
-/* 🎓 Mock Data */
+
 const courses = ref([
   {
     id: 1,
