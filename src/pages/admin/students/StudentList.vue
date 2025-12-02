@@ -194,7 +194,7 @@ const getAvatarUrl = (row) => {
   if (!avatar) return ''
   let url = avatar.url
   if (!url) return ''
-  return 'http://localhost:8080' + encodeURI(url)
+  return 'http://localhost:8089' + encodeURI(url)
 }
 
 const pagination = reactive({
@@ -207,6 +207,7 @@ const handleSizeChange = (size) => {
   fetchData()
 }
 const tableData = computed(() => {
+  console.log('Table Data:', route.query.courseId ? enrollmentStore.studentsOfCourse : studentStore.students);
   if (route.query.courseId) return enrollmentStore.studentsOfCourse
   return studentStore.students
 })
@@ -274,24 +275,22 @@ const handleDelete = async (row) => {
     await ElMessageBox.confirm(
         `Bạn có chắc chắn muốn xóa học viên "${row.name}"?`,
         'Xác nhận xóa',
-        { confirmButtonText: 'Xóa', cancelButtonText: 'Hủy', type: 'warning' }
+        {
+          confirmButtonText: 'Xóa',
+          cancelButtonText: 'Hủy',
+          type: 'warning'
+        }
     )
-    await studentStore.deleteStudent(row.id)
+    studentStore.deleteStudent(row.id)
 
-    // Nếu xóa làm trang hiện tại trống, quay lại trang trước
-    if (tableData.value.length === 1 && pagination.page > 1) {
-      pagination.page--
-    }
-
-    await fetchData()
     ElMessage.success('Xóa học viên thành công')
+    fetchData()
   } catch (error) {
     if (error !== 'cancel') {
       ElMessage.error('Lỗi xóa học viên')
     }
   }
 }
-
 
 const handleExport = () => {
   try {
@@ -316,7 +315,7 @@ const handleExport = () => {
 }
 const handleExportAll = async () => {
   try {
-    const res = await apiClient.get('/students/export', {
+    const res = await apiClient.get('http://localhost:8089/api/students/export', {
       responseType: 'blob'
     })
 

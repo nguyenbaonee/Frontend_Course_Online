@@ -1,46 +1,47 @@
 <template>
-  <div class="course-page" v-if="course">
-    <!-- Header -->
+  <div v-if="course" class="course-page">
     <div class="course-header">
       <div class="course-left">
         <h1 class="course-title">{{ course.title }}</h1>
-        <p class="course-sub">
-          Learn Web Development by building 25 websites and mobile apps using HTML, CSS,
-          JavaScript, PHP, Python, MySQL & more!
-        </p>
+        <p class="course-sub">{{ course.description }}</p>
         <div class="course-meta">
           <el-tag type="success" effect="plain">Best Seller</el-tag>
           <span class="rating">
-            <el-rate v-model="course.rating" disabled show-score text-color="#ff9900" />
-            <span>({{ course.reviews.length }} ratings · {{ course.students }} students)</span>
+            <el-rate
+                v-model="course.rating"
+                disabled
+                show-score
+                :style="{
+                '--el-rate-color': '#ff9900',
+                '--el-rate-bg-color': '#ddd'
+              }"
+            />
           </span>
+          <span>({{ course.reviews.length }} ratings · {{ course.students }} students)</span>
         </div>
       </div>
+
       <div class="course-right">
         <el-card class="course-card" shadow="hover">
-          <img :src="course.image" alt="preview" class="preview" />
-          <div class="price-box">
+          <img :src="`http://localhost:8089${course.image}`" alt="preview" class="preview" />
+          <div class="price-box" v-if="course.price !== null">
             <span class="discounted">{{ formatPrice(course.price * (1 - course.discount / 100)) }}</span>
             <del class="original">{{ formatPrice(course.price) }}</del>
-            <span class="discount">({{ course.discount }}% OFF)</span>
+            <span class="discount" v-if="course.discount">{{ (course.discount) }}% OFF</span>
           </div>
-          <p class="time-left">⏰ 2 days left at this price!</p>
-          <el-button type="primary" class="btn-buy" @click="buyNow">Buy Now</el-button>
-          <el-button type="success" class="btn-cart" @click="addToCart">Add to Cart</el-button>
-          <p class="wishlist">❤️ Add to Wishlist</p>
-          <ul class="includes">
-            <li>✔ 12 hours on-demand video</li>
-            <li>✔ 45 downloadable resources</li>
-            <li>✔ Full lifetime access</li>
-            <li>✔ Access on mobile and TV</li>
-            <li>✔ Certificate of completion</li>
-          </ul>
+          <el-button
+              type="success"
+              @click="addToCart(course.id)"
+              :disabled="!isAuthenticated"
+              class="add-to-cart-button">
+            Thêm vào giỏ hàng
+          </el-button>
         </el-card>
       </div>
     </div>
 
     <!-- What you'll learn -->
-    <div class="learn-section">
+    <div class="learn-section" v-if="course.learn.length">
       <h2>What you'll learn</h2>
       <div class="learn-grid">
         <div v-for="(item, index) in course.learn" :key="index" class="learn-item">
@@ -52,22 +53,10 @@
     <!-- Tabs -->
     <el-tabs v-model="activeTab" class="tabs-section">
       <el-tab-pane label="Description" name="description">
-        <p>{{ course.description }}</p>
+        <p>{{ course.descriptionDetail }}</p>
       </el-tab-pane>
-      <el-tab-pane label="Curriculum" name="curriculum">
-        <el-collapse accordion>
-          <el-collapse-item title="Section 1: Introduction">
-            <ul>
-              <li>Welcome to the Course (10:32)</li>
-              <li>Setting Up Your Environment (08:35)</li>
-              <li>Course Project Overview (04:45)</li>
-            </ul>
-          </el-collapse-item>
-          <el-collapse-item title="Section 2: HTML 5"></el-collapse-item>
-          <el-collapse-item title="Section 3: CSS 3"></el-collapse-item>
-        </el-collapse>
-      </el-tab-pane>
-      <el-tab-pane label="Instructor" name="instructor">
+
+      <el-tab-pane label="Instructor" name="instructor" v-if="course.instructor">
         <div class="instructor">
           <img :src="course.instructorAvatar" alt="" class="avatar" />
           <div>
@@ -77,7 +66,8 @@
           </div>
         </div>
       </el-tab-pane>
-      <el-tab-pane label="Reviews" name="reviews">
+
+      <el-tab-pane label="Reviews" name="reviews" v-if="course.reviews.length">
         <div v-for="review in course.reviews" :key="review.id" class="review-item">
           <strong>{{ review.user }}</strong>
           <el-rate v-model="review.rating" disabled />
@@ -87,12 +77,49 @@
     </el-tabs>
   </div>
 
+  <!-- Hiển thị khi khóa học chưa được tải -->
   <div v-else class="loading">Loading course...</div>
+
+  <section class="related-courses">
+    <h2>Các khóa học liên quan</h2>
+    <el-row :gutter="20">
+      <el-col :span="8" v-for="relatedCourse in relatedCourses" :key="relatedCourse.id">
+        <div class="course-wrapper">
+          <el-card :body-style="{ padding: '15px' }" shadow="hover" class="course-card">
+            <img :src="`http://localhost:8089${relatedCourse.image}`" class="course-thumb" alt="thumbnail" />
+
+            <h3>{{ relatedCourse.title }}</h3>
+            <p class="desc">{{ relatedCourse.description }}</p>
+
+            <div class="price">
+              <span class="old-price" v-if="relatedCourse.discount">{{ formatPrice(relatedCourse.price) }}</span>
+              <span class="new-price">{{ formatPrice(relatedCourse.discountedPrice) }}</span>
+            </div>
+            <router-link :to="`/course/${relatedCourse.id}`">
+              <el-button type="primary" size="small">Xem chi tiết</el-button>
+            </router-link>
+          </el-card>
+        </div>
+      </el-col>
+    </el-row>
+
+    <!-- Phân trang -->
+    <div class="pagination">
+      <el-pagination
+          :current-page="currentPage"
+          :page-size="pageSize"
+          :total="totalRelatedCourses"
+          @current-change="handlePageChange"
+      />
+    </div>
+  </section>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import axios from 'axios'
+import {ElMessage} from "element-plus";
 
 const route = useRoute()
 const router = useRouter()
@@ -100,50 +127,106 @@ const router = useRouter()
 const course = ref(null)
 const activeTab = ref('description')
 
-const courses = [
-  {
-    id: 1,
-    title: 'The Complete Web Developer Course 2.0',
-    description:
-        'Learn full-stack web development by building real-world websites and mobile apps using HTML, CSS, JS, PHP, Python, and MySQL.',
-    price: 64.99,
-    discount: 82,
-    rating: 4.7,
-    students: 125000,
-    instructor: 'John Doe',
-    instructorTitle: 'Web Developer, Designer, and Teacher',
-    instructorBio:
-        'John has been a web developer for over 10 years, working for top tech companies. He is passionate about helping students achieve their tech career goals.',
-    instructorAvatar: 'https://i.pravatar.cc/100?img=12',
-    image: 'https://picsum.photos/400/250?random=11',
-    learn: [
-      'Build 25 beautiful, modern websites and mobile apps',
-      'Master front-end development with HTML, CSS & JavaScript',
-      'Learn back-end development with PHP, Python & Node.js',
-      'Understand databases like MySQL and PostgreSQL',
-      'Develop skills to become a freelance web developer',
-      'Get a job as a junior web developer'
-    ],
-    reviews: [
-      { id: 1, user: 'Minh', rating: 5, comment: 'Tuyệt vời! Giảng viên dạy dễ hiểu.' },
-      { id: 2, user: 'Lan', rating: 4, comment: 'Nội dung đầy đủ, chi tiết.' }
-    ]
-  }
-]
+const relatedCourses = ref([])
+const currentPage = ref(1)
+const pageSize = ref(6)
+const totalRelatedCourses = ref(0)
 
-onMounted(() => {
-  const courseId = Number(route.params.id) || 1
-  course.value = courses.find(c => c.id === courseId)
+const formatPrice = (value) => {
+  if (value === null || value === undefined) return "0 ₫";
+
+  const num = Number(value);
+  if (isNaN(num)) return "0 ₫";
+
+  return num.toLocaleString("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  });
+};
+
+const isAuthenticated = !!localStorage.getItem('accessToken')
+
+// API call khi load trang
+onMounted(async () => {
+  const courseId = route.params.id
+  try {
+    const res = await axios.get(`http://localhost:8089/api/courses/${courseId}`, {
+      params: { status: 'ACTIVE' }
+    })
+    const data = res.data
+    // Map dữ liệu từ API về đúng structure
+    course.value = {
+      title: data.name,
+      // Chọn thumbnail type THUMBNAIL và primary=true, fallback thumbnail đầu tiên
+      image: data.thumbnail?.find(t => t.type === 'THUMBNAIL' && t.primary)?.url
+          || data.thumbnail?.[0]?.url
+          || '',
+      description: data.description || '',
+      descriptionDetail: data.descriptionDetail,
+      instructor: data.author || '',        // author là string
+      instructorAvatar: '',                 // nếu API không trả avatar
+      instructorTitle: '',
+      instructorBio: '',
+      learn: data.lessons || [],
+      reviews: data.reviews || [],
+      price: data.price,
+      discount: data.discount || 0,
+      students: data.students || 0,
+      rating: data.rating || 0,
+      code: data.code,
+      id:data.id
+    }
+    fetchRelatedCourses(course.value.code,course.value.id)
+  } catch (err) {
+    console.error('Lỗi khi lấy course:', err)
+  }
 })
 
-const formatPrice = value => '$' + value.toFixed(2)
+const fetchRelatedCourses = async (courseCode,id) => {
+  try {
+    const res = await axios.get('http://localhost:8089/api/courses', {
+      params: {
+        code: courseCode,
+        page: currentPage.value - 1, // Vì API dùng zero-indexed page
+        size: pageSize.value,
+        status: 'ACTIVE'
+      }
+    });
+    relatedCourses.value = res.data.content.filter(c => c.id !== id).map(c => ({
+      id: c.id,
+      title: c.name,
+      description: c.description,
+      discountedPrice: c.discount ? Math.round(c.price * (1 - c.discount / 100)) : c.price,
+      price: c.price,
+      image: c.thumbnail[0]?.url || '', // lấy ảnh đầu tiên
+    }));
 
-const addToCart = () => {
-  router.push('/cart')
+    totalRelatedCourses.value = res.data.totalElements;
+  } catch (err) {
+    console.error('Lỗi khi lấy khóa học liên quan:', err);
+  }
+};
+const handlePageChange = (page) => {
+  currentPage.value = page
+  fetchRelatedCourses(course.value.code) // Lấy lại khóa học liên quan cho trang mới
 }
+const addToCart = async (courseId) => {
+  const userId = localStorage.getItem('userId')
+  const quantity = 1
+  const requestBody = {
+    courseId,
+    quantity,
+    userId
+  }
 
-const buyNow = () => {
-  router.push('/checkout')
+  try {
+    const response = await axios.post('http://localhost:8099/carts/items', requestBody)
+    ElMessage.success('Item added to cart successfully!')
+    console.log('Item added to cart successfully:', response.data)
+  } catch (error) {
+    ElMessage.error('Error adding item to cart')
+    console.error('Error adding item to cart:', error)
+  }
 }
 </script>
 
@@ -205,32 +288,6 @@ const buyNow = () => {
 .discount {
   color: #f56c6c;
 }
-.time-left {
-  color: #e53935;
-  font-size: 0.9rem;
-  margin-left: 15px;
-}
-.btn-buy,
-.btn-cart {
-  width: 90%;
-  margin: 10px 5%;
-}
-.wishlist {
-  text-align: center;
-  font-size: 0.9rem;
-  color: #666;
-  margin-top: 5px;
-}
-.includes {
-  list-style: none;
-  padding: 10px 25px;
-  font-size: 0.9rem;
-  color: #333;
-}
-.includes li {
-  margin-bottom: 5px;
-}
-
 .learn-section {
   margin: 40px 0;
 }
@@ -270,4 +327,25 @@ const buyNow = () => {
   padding: 40px;
   font-size: 1.2rem;
 }
+.add-to-cart-button {
+  margin-top: 20px;
+  width: 100%;
+  background-color: #f56c6c;
+  color: #fff;
+  font-weight: bold;
+  border-radius: 5px;
+  padding: 10px;
+  transition: background-color 0.3s;
+}
+
+.add-to-cart-button:hover {
+  background-color: #d9534f;
+}
+
+.add-to-cart-button:disabled {
+  background-color: #ccc;
+  color: #fff;
+  cursor: not-allowed;
+}
+
 </style>

@@ -21,7 +21,7 @@
             <el-table-column label="Ảnh" width="120" align="center">
               <template #default="{ row }">
                 <el-image
-                    :src="'http://localhost:8080' + encodeURI(row.url)"
+                    :src="'http://localhost:8089' + encodeURI(row.url)"
                     fit="cover"
                     style="width: 100px; height: 60px; border-radius: 4px"
                 />
@@ -74,7 +74,7 @@
           <el-table :data="existingVideos" border style="width: 100%">
             <el-table-column label="Video" align="center">
               <template #default="{ row }">
-                <a :href="'http://localhost:8080' + encodeURI(row.url)" target="_blank">{{ row.name }}</a>
+                <a :href="'http://localhost:8089' + encodeURI(row.url)" target="_blank">{{ row.name }}</a>
               </template>
             </el-table-column>
 
@@ -273,7 +273,7 @@ const handleMainThumbnailChange = (thumbnailId) => {
 }
 const fetchLessonData = async () => {
   try {
-    const response = await axios.get(`/lessons/${route.params.id}`)
+    const response = await axios.get(`http://localhost:8089/api/lessons/${route.params.id}`)
     // const response = await axios.get(`/lessons`.{
     //   route.params.id
     // })
@@ -324,10 +324,10 @@ const handleSubmit = async () => {
 
       // Call API
       if (isEdit.value) {
-        await axios.put(`/lessons/${route.params.id}`, data, { headers: { 'Content-Type':'multipart/form-data' } })
+        await axios.put(`http://localhost:8089/api/lessons/${route.params.id}`, data, { headers: { 'Content-Type':'multipart/form-data' } })
         ElMessage.success('Cập nhật bài học thành công')
       } else {
-        await axios.post(`/lessons/${courseId}`, data, { headers: { 'Content-Type':'multipart/form-data' } })
+        await axios.post(`http://localhost:8089/api/lessons/${courseId}`, data, { headers: { 'Content-Type':'multipart/form-data' } })
         ElMessage.success('Thêm bài học thành công')
       }
 

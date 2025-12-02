@@ -21,7 +21,7 @@
             <el-table :data="existingAvatars" border style="width: 100%">
               <el-table-column :label="$t('studentForm.image')" width="100" align="center">
                 <template #default="{ row }">
-                  <el-avatar :src="'http://localhost:8080' + encodeURI(row.url)" :size="60" />
+                  <el-avatar :src="'http://localhost:8089' + encodeURI(row.url)" :size="60" />
                 </template>
               </el-table-column>
 
@@ -308,7 +308,7 @@ const handleSubmit = async () => {
         console.log('=== UPDATE DATA ===')
 
         // Call API UPDATE
-        await axios.put(`/students/${route.params.id}`, formDataToSend, {
+        await axios.put(`http://localhost:8089/api/students/${route.params.id}`, formDataToSend, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
 
@@ -323,7 +323,7 @@ const handleSubmit = async () => {
           }
         })
         // Call API CREATE
-        await axios.post('/students', formDataToSend, {
+        await axios.post('http://localhost:8089/api/students', formDataToSend, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
 

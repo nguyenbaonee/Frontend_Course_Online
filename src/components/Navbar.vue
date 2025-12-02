@@ -18,9 +18,9 @@
             @select="handleSelect"
         >
           <el-menu-item index="/">Trang chủ</el-menu-item>
-          <el-menu-item index="/courses">Khóa học</el-menu-item>
+          <el-menu-item index="/search">Khóa học</el-menu-item>
           <el-menu-item index="/instructors">Giảng viên</el-menu-item>
-          <el-menu-item index="/blog">Blog</el-menu-item>
+          <el-menu-item index="/aiChat">ChatBot</el-menu-item>
         </el-menu>
       </div>
 
@@ -56,9 +56,7 @@
         <div v-if="isAuthenticated" class="user-section">
           <el-dropdown trigger="click" @command="handleCommand">
             <div class="user-info">
-              <el-avatar :src="user.avatar" :size="40">
-                {{ userName }}
-              </el-avatar>
+              <el-avatar :src="image.avatar" :size="36">{{ userName }}</el-avatar>
               <span class="user-name">{{ user.name }}</span>
               <el-icon class="arrow-icon"><ArrowDown /></el-icon>
             </div>
@@ -105,104 +103,12 @@
       </div>
     </div>
   </el-header>
-
-  <!-- Mobile Drawer -->
-  <el-drawer
-      v-model="drawer"
-      title="Menu"
-      direction="rtl"
-      size="80%"
-  >
-    <!-- Mobile Search -->
-    <el-input
-        v-model="searchQuery"
-        placeholder="Tìm kiếm khóa học..."
-        :prefix-icon="Search"
-        clearable
-        style="margin-bottom: 20px"
-        @keyup.enter="handleSearch"
-    />
-
-    <!-- Mobile Navigation -->
-    <el-menu
-        :default-active="activeIndex"
-        @select="handleMobileSelect"
-    >
-      <el-menu-item index="/">
-        <el-icon><HomeFilled /></el-icon>
-        <span>Trang chủ</span>
-      </el-menu-item>
-      <el-menu-item index="/courses">
-        <el-icon><Reading /></el-icon>
-        <span>Khóa học</span>
-      </el-menu-item>
-      <el-menu-item index="/instructors">
-        <el-icon><UserFilled /></el-icon>
-        <span>Giảng viên</span>
-      </el-menu-item>
-      <el-menu-item index="/blog">
-        <el-icon><Document /></el-icon>
-        <span>Blog</span>
-      </el-menu-item>
-    </el-menu>
-
-    <el-divider />
-
-    <!-- Mobile User Section -->
-    <div v-if="isAuthenticated" class="mobile-user-section">
-      <el-card shadow="never" :body-style="{ padding: '16px' }">
-        <div class="mobile-user-info">
-          <el-avatar :src="image.avatar" :size="60">
-            {{ user.name.charAt(0) }}
-          </el-avatar>
-          <div class="mobile-user-details">
-            <div class="mobile-user-name">{{ user.name }}</div>
-            <div class="mobile-user-email">{{ user.email }}</div>
-          </div>
-        </div>
-      </el-card>
-
-      <el-menu style="margin-top: 16px" @select="handleMobileCommand">
-        <el-menu-item index="profile">
-          <el-icon><User /></el-icon>
-          <span>Tài khoản của tôi</span>
-        </el-menu-item>
-        <el-menu-item index="my-courses">
-          <el-icon><Reading /></el-icon>
-          <span>Khóa học của tôi</span>
-        </el-menu-item>
-        <el-menu-item index="wishlist">
-          <el-icon><Star /></el-icon>
-          <span>Danh sách yêu thích</span>
-        </el-menu-item>
-        <el-menu-item index="settings">
-          <el-icon><Setting /></el-icon>
-          <span>Cài đặt</span>
-        </el-menu-item>
-        <el-menu-item index="logout">
-          <el-icon><SwitchButton /></el-icon>
-          <span>Đăng xuất</span>
-        </el-menu-item>
-      </el-menu>
-    </div>
-
-    <!-- Mobile Auth Buttons -->
-    <el-space v-else direction="vertical" :fill="true" style="width: 100%; margin-top: 20px">
-      <el-button size="large" style="width: 100%" @click="handleLogin">
-        Đăng nhập
-      </el-button>
-      <el-button type="primary" size="large" style="width: 100%" @click="handleRegister">
-        Đăng ký
-      </el-button>
-    </el-space>
-  </el-drawer>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import axios from 'axios'
-import { ElMessage } from 'element-plus'
 import {
   Search, ShoppingCart, Bell, User, Reading,
   Star, Setting, SwitchButton, ArrowDown,
@@ -217,8 +123,8 @@ const route = useRoute()
 const searchQuery = ref('')
 const drawer = ref(false)
 const navbarHeight = '64px'
-const cartCount = ref(3)
-const notificationCount = ref(5)
+const cartCount = ref(0)
+const notificationCount = ref(0)
 const activeIndex = computed(() => route.path)
 
 const user = ref({
@@ -261,7 +167,6 @@ onMounted(() => {
 
 // Navbar actions
 const handleSelect = (index) => router.push(index)
-const handleMobileSelect = (index) => { router.push(index); drawer.value = false }
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
     router.push({ name: 'search', query: { q: searchQuery.value } })

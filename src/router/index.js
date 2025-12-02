@@ -9,7 +9,7 @@ import CourseDetail from '../pages/user/CourseDetail.vue'
 import Cart from '../pages/user/Cart.vue'
 import Checkout from '../pages/user/Checkout.vue'
 import MyCourses from '../pages/user/MyCourses.vue'
-import Discussion from "../pages/user/Discussion.vue";
+import AiChat from "../pages/user/AiChat.vue";
 import Category from '../pages/user/Category.vue'
 
 import Login from '../pages/auth/Login.vue'
@@ -28,8 +28,8 @@ const routes = [
             { path: 'course/:id', name: 'courseDetail', component: CourseDetail },
             { path: 'cart', name: 'cart', component: Cart },
             { path: 'checkout', name: 'checkout', component: Checkout, meta: { requiresAuth: true } },
-            { path: 'purchased', name: 'purchased', component: MyCourses },
-            { path: 'discussion', name: 'discussion', component: Discussion },
+            { path: 'myCourses', name: 'purchased', component: MyCourses },
+            { path: 'aiChat', name: 'aiChat', component: AiChat },
         ]
     },
     {

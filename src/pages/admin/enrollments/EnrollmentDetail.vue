@@ -202,7 +202,7 @@ const filteredEnrollments = computed(() => {
 })
 const primaryAvatarUrl = computed(() => {
   const primary = studentInfo.value.avatar?.find(a => a.primary)
-  return primary ? 'http://localhost:8080' + primary.url : ''
+  return primary ? 'http://localhost:8089' + primary.url : ''
 })
 // Fetch data
 const fetchData = async () => {

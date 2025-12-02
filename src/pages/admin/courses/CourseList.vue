@@ -71,7 +71,7 @@
           <template #default="{ row }">
             <el-image
                 :src="getPrimaryThumbnailUrl(row)"
-                :preview-src-list="row.thumbnail?.map(t => 'http://localhost:8080' + encodeURI(t.url)) || []"
+                :preview-src-list="row.thumbnail?.map(t => 'http://localhost:8089' + encodeURI(t.url)) || []"
                 fit="cover"
                 style="width: 80px; height: 50px; border-radius: 4px"
             />
@@ -124,7 +124,7 @@
         <el-pagination
             v-model:current-page="pagination.page"
             v-model:page-size="pagination.pageSize"
-            :page-sizes="[10, 20, 50, 100]"
+            :page-sizes="[5,10, 20, 50, 100]"
             :total="total"
             layout="total, sizes, prev, pager, next, jumper"
         />
@@ -215,7 +215,7 @@ const getPrimaryThumbnailUrl = (course) => {
   if (!thumbnail) return ''
   const url = thumbnail.url
   if (!url) return ''
-  return 'http://localhost:8080' + encodeURI(url)
+  return 'http://localhost:8089' + encodeURI(url)
 }
 
 

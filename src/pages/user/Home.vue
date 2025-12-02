@@ -3,8 +3,8 @@
     <!-- 🟦 Hero Section with Auto Slider -->
     <section class="hero">
       <el-carousel :interval="3500" type="card" height="250px" indicator-position="outside">
-        <el-carousel-item v-for="(banner, index) in banners" :key="index">
-          <img :src="banner" class="hero-image" />
+        <el-carousel-item v-for="banner in banners" :key="banner.id">
+          <img :src="`http://localhost:8686${banner.imageUrl}`" class="hero-image" />
         </el-carousel-item>
       </el-carousel>
       <div class="hero-content">
@@ -24,7 +24,8 @@
                @mouseleave="hoveredCourse = null">
 
             <el-card :body-style="{ padding: '15px' }" shadow="hover" class="course-card">
-              <img :src="course.image" class="course-thumb" alt="thumbnail" />
+              <img :src="`http://localhost:8089${course.image}`" class="course-thumb" alt="thumbnail" />
+
               <h3>{{ course.title }}</h3>
               <p class="desc">{{ course.description }}</p>
 
@@ -41,11 +42,9 @@
             <transition name="fade">
               <div v-if="hoveredCourse === course.id" class="hover-info">
                 <p><strong>Giảng viên:</strong> {{ course.author }}</p>
-                <p><strong>Lượt mua:</strong> {{ course.purchases.toLocaleString() }} học viên</p>
+                <p><strong>Lượt mua:</strong> {{ formatNumber(course.purchases) }} học viên</p>
                 <p><strong>Kiến thức học được:</strong></p>
-                <ul>
-                  <li v-for="(topic, i) in course.topics" :key="i">{{ topic }}</li>
-                </ul>
+                <p>{{ course.descriptionDetail }}</p>
               </div>
             </transition>
           </div>
@@ -57,83 +56,101 @@
     <section class="cta">
       <h2>Bắt đầu hành trình học tập của bạn hôm nay!</h2>
       <p>Tham gia cùng hàng ngàn học viên đang nâng cao kỹ năng mỗi ngày.</p>
-      <router-link to="/auth/register">
+      <!-- Chỉ hiển thị nút đăng ký nếu không có accessToken -->
+      <router-link v-if="!isAuthenticated" to="/auth/register">
         <el-button type="primary">Đăng ký ngay</el-button>
       </router-link>
     </section>
   </div>
 </template>
 
+
 <script setup>
-import { ref } from 'vue'
-import { computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 
 const router = useRouter()
+const isAuthenticated = computed(() => !!localStorage.getItem('accessToken'))  // Kiểm tra accessToken
 
-const isAuthenticated = computed(() => !!localStorage.getItem('accessToken'))
+const banners = ref([])
+const courses = ref([])
+const hoveredCourse = ref(null)
 
-const handleExplore = () => {
-  if (isAuthenticated.value) {
-    // Nếu đã login → chuyển đến trang courses
-    router.push('/courses')
-  } else {
-    // Nếu chưa login → chuyển đến login
-    router.push('/auth/login')
+
+/* 🖼 Lấy banner */
+const fetchBanners = async () => {
+  try {
+    const res = await axios.get(`http://localhost:8686/banners`, {
+      params: {
+        position: 'MENU',
+        status: 'ACTIVE'
+      }
+    })
+
+    banners.value = res.data
+  } catch (err) {
+    console.error('Lấy banner thất bại', err)
   }
 }
-/* 🖼 Banner auto slide */
-const banners = [
-  'https://images.unsplash.com/photo-1503676260728-1c00da094a0b',
-  'https://images.unsplash.com/photo-1522202176988-66273c2fd55f',
-  'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61'
-]
 
 
-const courses = ref([
-  {
-    id: 1,
-    title: 'Vue 3 từ cơ bản đến nâng cao',
-    description: 'Học Vue 3 Composition API, Router, Pinia và tối ưu hiệu suất.',
-    price: 599000,
-    discount: 20,
-    author: 'Nguyễn Bảo',
-    purchases: 1230,
-    topics: ['Hiểu rõ Composition API', 'Xây dựng project thực tế', 'Sử dụng Pinia'],
-    image: 'https://picsum.photos/400/200?random=1',
-  },
-  {
-    id: 2,
-    title: 'ReactJS + TypeScript chuyên nghiệp',
-    description: 'Xây dựng SPA chuẩn production với ReactJS và TypeScript.',
-    price: 799000,
-    discount: 30,
-    author: 'Lê Minh Tùng',
-    purchases: 2430,
-    topics: ['React Hooks nâng cao', 'Context API', 'Quản lý state với Redux'],
-    image: 'https://picsum.photos/400/200?random=2',
-  },
-  {
-    id: 3,
-    title: 'NodeJS & Express',
-    description: 'Xây dựng RESTful API chuyên nghiệp với NodeJS và Express.',
-    price: 499000,
-    discount: 0,
-    author: 'Phạm Duy An',
-    purchases: 980,
-    topics: ['REST API', 'Middleware', 'JWT & Authentication'],
-    image: 'https://picsum.photos/400/200?random=3',
-  },
-])
+const fetchCourses = async () => {
+  try {
+    const res = await axios.get(`http://localhost:8089/api/courses`, {
+      params: { page: 0, size: 6, status: 'ACTIVE' }
+    })
+    courses.value = res.data.content.map(c => ({
+      id: c.id,
+      title: c.name,
+      description: c.description,
+      descriptionDetail: c.descriptionDetail,
+      image: c.thumbnail[0]?.url || '', // lấy ảnh đầu tiên
+      price: c.price,
+      discount: c.discount,
+      author: c.author,
+      topics: c.topics,
+      purchases: c.purchases
+    }))
+  } catch (err) {
+    console.error('Lấy khóa học thất bại', err)
+  }
+}
 
-const hoveredCourse = ref(null)
+
+/* 🌟 Handle explore button */
+const handleExplore = () => {
+  router.push(isAuthenticated.value ? '/courses' : '/auth/login')
+}
+
+/* 🏁 Mounted */
+onMounted(() => {
+  fetchBanners()
+  fetchCourses()
+})
 
 /* 📊 Utils */
 const discounted = (course) =>
     course.discount ? Math.round(course.price * (1 - course.discount / 100)) : course.price
 
-const formatPrice = (value) =>
-    value.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' })
+const formatPrice = (value) => {
+  if (value === null || value === undefined) return "0 ₫";
+
+  const num = Number(value);
+  if (isNaN(num)) return "0 ₫";
+
+  return num.toLocaleString("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  });
+};
+
+const formatNumber = (value)  => {
+  if (value === null || value === undefined) return "0";
+  const num = Number(value);
+  if (isNaN(num)) return "0";
+  return num.toLocaleString("vi-VN");
+}
 </script>
 
 <style scoped>
@@ -304,15 +321,6 @@ const formatPrice = (value) =>
     opacity: 1;
     transform: translate(-50%, 0) scale(1);
   }
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.25s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 
 /* CTA */

@@ -166,7 +166,7 @@ const getThumbnail = (thumbnails) => {
   const thumbnail = thumbnails?.find(t => t.primary && t.type === 'THUMBNAIL');
   if (!thumbnail || !thumbnail.url) return '';
   // thêm host nếu url chưa đầy đủ
-  return 'http://localhost:8080' + encodeURI(thumbnail.url);
+  return 'http://localhost:8089' + encodeURI(thumbnail.url);
 };
 
 const onStatusChange = (status) => {
@@ -232,7 +232,7 @@ const handleDelete = async (row) => {
   }
 }
 const previewVideo = (row) => {
-  currentVideo.value = "http://localhost:8080" + getVideo(row.thumbnails)
+  currentVideo.value = "http://localhost:8089" + getVideo(row.thumbnails)
   videoDialogVisible.value = true
 }
 

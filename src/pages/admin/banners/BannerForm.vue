@@ -18,7 +18,7 @@
         <!-- Banner hiện có khi Edit -->
         <el-form-item v-if="isEdit && formData.imageUrl" label="Banner hiện tại">
           <el-image
-              :src="`http://localhost:8089${formData.imageUrl}`"
+              :src="`http://localhost:8686${formData.imageUrl}`"
               fit="cover"
               style="width: 200px; height: 100px; border-radius: 4px"
           />
@@ -121,7 +121,7 @@ const rules = {
 // Fetch banner khi edit
 const fetchBanner = async () => {
   try {
-    const response = await axios.get(`http://localhost:8089/banners/${route.params.id}`)
+    const response = await axios.get(`http://localhost:8686/banners/${route.params.id}`)
     const banner = response.data
     formData.title = banner.title
     formData.position = banner.position
@@ -166,10 +166,10 @@ const handleSubmit = async () => {
       if (formData.image) fd.append('image', formData.image)
 
       if (isEdit.value) {
-        await axios.put(`http://localhost:8089/banners/${route.params.id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+        await axios.put(`http://localhost:8686/banners/${route.params.id}`, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
         ElMessage.success('Cập nhật banner thành công')
       } else {
-        await axios.post('http://localhost:8089/banners', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+        await axios.post('http://localhost:8686/banners', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
         ElMessage.success('Thêm banner thành công')
       }
       router.push('/banners')

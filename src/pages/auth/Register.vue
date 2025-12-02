@@ -82,7 +82,7 @@ const handleRegister = () => {
 
     try {
       const payload = { ...form }
-      await axios.post('http://localhost:8082/users', payload)
+      await axios.post('http://localhost:8092/iam-service/users', payload)
       alert('Register success')
       router.push('/auth/login')
     } catch (err) {

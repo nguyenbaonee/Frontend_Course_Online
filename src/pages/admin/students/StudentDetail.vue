@@ -26,7 +26,7 @@
               <el-image
                   v-for="item in student.avatar?.filter(a => !a.primary)"
                   :key="item.id"
-                  :src="'http://localhost:8080' + item.url"
+                  :src="'http://localhost:8089' + item.url"
                   style="width: 70px; height: 70px; border-radius: 6px;"
                   fit="cover"
               />
@@ -76,7 +76,7 @@ const student = ref({
 const getAvatarUrl = (studentData) => {
   const primaryAvatar = studentData.avatar?.find(a => a.primary)
   if (!primaryAvatar) return ''
-  return 'http://localhost:8080' + encodeURI(primaryAvatar.url)
+  return 'http://localhost:8089' + encodeURI(primaryAvatar.url)
 }
 
 // Lấy dữ liệu chi tiết student
@@ -84,7 +84,7 @@ const fetchStudent = async () => {
   try {
     const id = route.params.id
     const status = route.query.status
-    const res = await apiClient.get(`/students/${id}`,{
+    const res = await apiClient.get(`http://localhost:8089/api/students/${id}`,{
       params: { status }
     })
     student.value = res.data

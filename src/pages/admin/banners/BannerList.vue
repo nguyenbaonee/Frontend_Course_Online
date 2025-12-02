@@ -56,7 +56,7 @@
         <el-table-column label="Image" width="120" align="center">
           <template #default="{ row }">
             <el-image
-                :src="`http://localhost:8089${row.imageUrl}`"
+                :src="`http://localhost:8686${row.imageUrl}`"
                 fit="cover"
                 style="width: 80px; height: 50px; border-radius: 4px"
             />
@@ -146,7 +146,7 @@ const fetchData = async () => {
       position: searchForm.position || undefined,
       status: searchForm.status || undefined,
     }
-    const res = await axios.get('http://localhost:8089/banners', { params })
+    const res = await axios.get('http://localhost:8686/banners', { params })
     tableData.splice(0, tableData.length, ...res.data)
     tableData.splice(0, tableData.length, ...res.data.map(item => ({
       ...item,
@@ -162,7 +162,7 @@ const fetchData = async () => {
 const toggleStatus = async (row) => {
   try {
     const newStatus = row.statusSwitch
-    await axios.post(`http://localhost:8089/banners/${row.id}/status`, null, {
+    await axios.post(`http://localhost:8686/banners/${row.id}/status`, null, {
       params: { status: newStatus }
     })
     ElMessage.success(`Banner "${row.title}" is now ${newStatus}`)
@@ -197,7 +197,7 @@ const handleEdit = (row) => {
 const handleDelete = async (row) => {
   try {
     await ElMessageBox.confirm(`Delete banner "${row.title}"?`, 'Confirm', { type: 'warning' })
-    await axios.delete(`http://localhost:8089/banners/${row.id}`)
+    await axios.delete(`http://localhost:8686/banners/${row.id}`)
     ElMessage.success('Banner deleted')
     fetchData()
   } catch (err) {

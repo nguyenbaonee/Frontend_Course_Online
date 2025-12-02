@@ -10,10 +10,10 @@ export const useStudentStore = defineStore('student', () => {
     const total = ref(0)
 
     // --- Actions ---
-    const fetchStudents = async ({ name = '', email ='', status = 'ACTIVE', page = 1, pageSize = 10 } = {}) => {
-        loading.value = true
+    const fetchStudents = async ({ name = '', email = '', status = 'ACTIVE', page = 1, pageSize = 10 } = {}) => {
+        loading.value = true;
         try {
-            const res = await apiClient.get('/students', {
+            const res = await apiClient.get('http://localhost:8089/api/students', {
                 params: {
                     name,
                     email,
@@ -21,22 +21,31 @@ export const useStudentStore = defineStore('student', () => {
                     page: page - 1,
                     size: pageSize
                 }
-            })
-            students.value = res.data.content
-            total.value = res.data.totalElements
+            });
+
+            // Kiểm tra giá trị trả về
+            console.log(res.data.content);
+            if (res.data && Array.isArray(res.data.content)) {
+                students.value = res.data.content;
+                total.value = res.data.totalElements || 0;
+            } else {
+                students.value = [];
+                total.value = 0;
+            }
         } catch (err) {
-            console.error(err)
-            students.value = []
-            total.value = 0
+            console.error(err);
+            students.value = [];
+            total.value = 0;
         } finally {
-            loading.value = false
+            loading.value = false;
         }
-    }
+    };
+
 
     const fetchStudentById = async (id, status) => {
         loading.value = true
         try {
-            const res = await apiClient.get(`/students/${id}`,{
+            const res = await apiClient.get(`http://localhost:8089/api/students/${id}`,{
                 params: {
                     status,
                 }
@@ -61,11 +70,11 @@ export const useStudentStore = defineStore('student', () => {
         try {
             let res
             if (student.id) {
-                res = await apiClient.put(`/students/${student.id}`, student)
+                res = await apiClient.put(`http://localhost:8089/api/students/${student.id}`, student)
                 const index = students.value.findIndex(s => s.id === student.id)
                 if (index !== -1) students.value[index] = res.data
             } else {
-                res = await apiClient.post('/students', student)
+                res = await apiClient.post('http://localhost:8089/api/students', student)
                 students.value.push(res.data)
             }
             return res.data
@@ -77,7 +86,7 @@ export const useStudentStore = defineStore('student', () => {
     const deleteStudent = async (id) => {
         loading.value = true
         try {
-            await apiClient.delete(`/students/${id}`)
+            await apiClient.delete(`http://localhost:8089/api/students/${id}`)
 
             // Nếu đang có danh sách, filter nhanh
             if (students.value.length) {

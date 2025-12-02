@@ -28,7 +28,7 @@
               <el-image
                   v-for="item in course.thumbnail?.filter(t => !t.primary)"
                   :key="item.id"
-                  :src="'http://localhost:8080' + encodeURI(item.url)"
+                  :src="'http://localhost:8089' + encodeURI(item.url)"
                   style="width: 80px; height: 60px; border-radius: 6px;"
                   fit="cover"
               />
@@ -86,14 +86,14 @@ const course = ref({
 const getPrimaryThumbnail = (courseData) => {
   const t = courseData.thumbnail?.find(t => t.primary)
   if (!t || !t.url) return ''
-  return 'http://localhost:8080' + encodeURI(t.url)
+  return 'http://localhost:8089' + encodeURI(t.url)
 }
 
 // fetch course detail
 const fetchCourse = async () => {
   try {
     const id = route.params.id
-    const res = await apiClient.get(`/courses/${id}`)
+    const res = await apiClient.get(`http://localhost:8089/api/courses/${id}`)
     course.value = res.data
   } catch (err) {
     const msg = err.response?.data?.message || 'Lỗi khi lấy thông tin khóa học'

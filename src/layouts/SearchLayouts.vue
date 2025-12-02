@@ -1,7 +1,6 @@
 <template>
   <div class="layout-container">
     <Navbar />
-    <Search/>
     <main class="main-content">
       <router-view />
     </main>

@@ -175,7 +175,7 @@ const getAvatarUrl = (row) => {
   if (!avatar) return ''
   let url = avatar.url
   if (!url) return ''
-  return 'http://localhost:8080' + encodeURI(url)
+  return 'http://localhost:8089' + encodeURI(url)
 }
 
 const pagination = reactive({

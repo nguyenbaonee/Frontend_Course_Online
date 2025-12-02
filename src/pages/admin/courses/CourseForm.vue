@@ -22,7 +22,7 @@
               <el-table-column label="Ảnh" width="120" align="center">
                 <template #default="{ row }">
                   <el-image
-                      :src="'http://localhost:8080' + encodeURI(row.url)"
+                      :src="'http://localhost:8089' + encodeURI(row.url)"
                       fit="cover"
                       style="width: 100px; height: 60px; border-radius: 4px"
                   />
@@ -129,6 +129,35 @@
               clearable
           />
         </el-form-item>
+        <el-form-item label="Tác giả" prop="author">
+          <el-input
+              v-model="formData.author"
+              placeholder="Nhập tên tác giả"
+              maxlength="100"
+              clearable
+          />
+        </el-form-item>
+
+        <el-form-item label="Chi tiết mô tả" prop="descriptionDetail">
+          <el-input
+              v-model="formData.descriptionDetail"
+              type="textarea"
+              :rows="4"
+              placeholder="Nhập chi tiết mô tả khóa học"
+              maxlength="2000"
+              clearable
+          />
+        </el-form-item>
+
+        <el-form-item label="Giá khóa học" prop="price" required>
+          <el-input-number
+              v-model="formData.price"
+              :min="0"
+              :step="1000"
+              placeholder="Nhập giá khóa học"
+              style="width: 200px;"
+          />
+        </el-form-item>
 
         <el-form-item>
           <el-button type="primary" :loading="submitting" @click="handleSubmit">
@@ -165,8 +194,12 @@ const deleteThumbnailsId = ref([])      // Danh sách ID thumbnail cần xóa
 const formData = reactive({
   name: '',
   code: '',
-  description: ''
+  description: '',
+  descriptionDetail: '', // thêm
+  author: '',            // thêm
+  price: null            // thêm
 })
+
 
 // Validation rules
 const validateName = (rule, value, callback) => {
@@ -194,20 +227,32 @@ const validateCode = (rule, value, callback) => {
 }
 
 const rules = {
-  name: [
-    { required: true, validator: validateName, trigger: 'blur' }
-  ],
-  code: [
-    { required: true, validator: validateCode, trigger: 'blur' }
+  name: [{ required: true, validator: validateName, trigger: 'blur' }],
+  code: [{ required: true, validator: validateCode, trigger: 'blur' }],
+  price: [
+    {
+      required: true,
+      validator: (rule, value, callback) => {
+        if (value === null || value === '') {
+          callback(new Error('Giá khóa học không được để trống'))
+        } else if (value < 0) {
+          callback(new Error('Giá khóa học phải >= 0'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
   ]
 }
+
 
 // Fetch course data for edit
 const fetchData = async () => {
   try {
     const status = route.query.status
 
-    const response = await axios.get(`/courses/${route.params.id}`)
+    const response = await axios.get(`http://localhost:8089/api/courses/${route.params.id}`)
     const course = response.data
 
     formData.name = course.name
@@ -276,7 +321,6 @@ const handleMainThumbnailChange = (thumbnailId) => {
   ElMessage.success('Đã đặt làm thumbnail chính')
 }
 
-// Submit form
 const handleSubmit = async () => {
   if (!formRef.value) return
 
@@ -291,6 +335,9 @@ const handleSubmit = async () => {
     try {
       const formDataToSend = new FormData()
       formDataToSend.append('name', formData.name.trim())
+      formDataToSend.append('author', formData.author?.trim() || '')
+      formDataToSend.append('descriptionDetail', formData.descriptionDetail?.trim() || '')
+      formDataToSend.append('price', formData.price != null ? String(formData.price) : '0')
 
       if (formData.description) {
         formDataToSend.append('description', formData.description.trim())
@@ -300,46 +347,33 @@ const handleSubmit = async () => {
         formDataToSend.append('code', formData.code.trim())
       }
 
+      // Append thumbnails
+      newThumbnails.value.forEach(file => {
+        if (file.raw) {
+          formDataToSend.append('images', file.raw)
+        }
+      })
+
       if (isEdit.value) {
-        // ===== MODE EDIT =====
-
-        // Append new thumbnail files
-        newThumbnails.value.forEach(file => {
-          if (file.raw) {
-            formDataToSend.append('images', file.raw)
-          }
-        })
-
-        // Append deleteThumbnailsId (nếu có)
+        // Delete thumbnails
         if (deleteThumbnailsId.value.length > 0) {
           deleteThumbnailsId.value.forEach(id => {
             formDataToSend.append('deleteThumbnailsId', id)
           })
         }
 
-        // Append mainThumbnailId
+        // Main thumbnail
         if (mainThumbnailId.value) {
           formDataToSend.append('mainThumbnailId', mainThumbnailId.value)
         }
 
-        // Debug log
-        console.log('=== UPDATE COURSE DATA ===')
-
-        // Call API UPDATE
-        await axios.put(`/courses/${route.params.id}`, formDataToSend, {
+        await axios.put(`http://localhost:8089/api/courses/${route.params.id}`, formDataToSend, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
-
         ElMessage.success('Cập nhật khóa học thành công')
 
       } else {
-        // Append new thumbnail files
-        newThumbnails.value.forEach(file => {
-          if (file.raw) {
-            formDataToSend.append('images', file.raw)
-          }
-        })
-        await axios.post('/courses', formDataToSend, {
+        await axios.post('http://localhost:8089/api/courses', formDataToSend, {
           headers: { 'Content-Type': 'multipart/form-data' }
         })
         ElMessage.success('Thêm khóa học thành công')

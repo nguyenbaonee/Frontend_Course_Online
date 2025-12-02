@@ -12,7 +12,7 @@
         <!-- Hình ảnh banner -->
         <el-col :span="6">
           <el-image
-              :src="`http://localhost:8089${banner.imageUrl}`"
+              :src="`http://localhost:8686${banner.imageUrl}`"
               style="width: 150px; height: 100px; border-radius: 8px;"
               fit="cover"
           />
@@ -80,7 +80,7 @@ const formatDate = (instant) => {
 const fetchBanner = async () => {
   try {
     const id = route.params.id
-    const res = await axios.get(`http://localhost:8089/banners/${id}`)
+    const res = await axios.get(`http://localhost:8686/banners/${id}`)
     banner.value = res.data
   } catch (err) {
     const msg = err.response?.data?.message || 'Lỗi khi lấy thông tin banner'

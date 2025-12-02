@@ -13,7 +13,7 @@ export const useCourseStore = defineStore('course', () => {
     const fetchCourses = async ({ name = '', code = '', status = 'ACTIVE', page = 1, pageSize = 10 } = {}) => {
         loading.value = true
         try {
-            const res = await apiClient.get('/courses', {
+            const res = await apiClient.get('http://localhost:8089/api/courses', {
                 params: {
                     name,
                     code,
@@ -38,7 +38,7 @@ export const useCourseStore = defineStore('course', () => {
     const fetchCourseById = async (id) => {
         loading.value = true
         try {
-            const res = await apiClient.get(`/courses/${id}`)
+            const res = await apiClient.get(`http://localhost:8089/api/courses/${id}`)
             currentCourse.value = res.data
             return res.data
         } catch (err) {
@@ -69,13 +69,13 @@ export const useCourseStore = defineStore('course', () => {
 
             let res
             if (course.id) {
-                res = await apiClient.put(`/courses/${course.id}`, formData, {
+                res = await apiClient.put(`http://localhost:8089/api/courses/${course.id}`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 })
                 const index = courses.value.findIndex(c => c.id === course.id)
                 if (index !== -1) Object.assign(courses.value[index], res.data)
             } else {
-                res = await apiClient.post('/courses', formData, {
+                res = await apiClient.post('http://localhost:8089/api/courses', formData, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 })
                 courses.value.push(res.data)
@@ -89,7 +89,7 @@ export const useCourseStore = defineStore('course', () => {
     const deleteCourse = async (id) => {
         loading.value = true
         try {
-            await apiClient.delete(`/courses/${id}`)
+            await apiClient.delete(`http://localhost:8089/api/courses/${id}`)
             if (courses.value.length) {
                 courses.value = courses.value.filter(c => c.id !== id)
             } else {

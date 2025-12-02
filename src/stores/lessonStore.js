@@ -22,7 +22,7 @@ export const useLessonStore = defineStore('lesson', () => {
             images.forEach(file => formData.append('images', file))
             videos.forEach(file => formData.append('videos', file))
 
-            const res = await apiClient.post(`/lessons/${courseId}`, formData, {
+            const res = await apiClient.post(`http://localhost:8089/api/lessons/${courseId}`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             })
             return res.data.data // ApiResponse<LessonResponse>
@@ -37,7 +37,7 @@ export const useLessonStore = defineStore('lesson', () => {
     const fetchLessonsByCourse = async (courseId, status='ACTIVE', page=1, pageSize=10) => {
         loading.value = true
         try {
-            const res = await apiClient.get('/lessons', {
+            const res = await apiClient.get('http://localhost:8089/api/lessons', {
                 params: { courseId, status, page: page-1, size: pageSize }
             })
             console.log(res.data) // <-- log dữ liệu ở đây
@@ -60,7 +60,7 @@ export const useLessonStore = defineStore('lesson', () => {
     const deleteLesson = async (lessonId) => {
         loading.value = true
         try {
-            await apiClient.delete(`/lessons/${lessonId}`)
+            await apiClient.delete(`http://localhost:8089/api/lessons/${lessonId}`)
             lessons.value = lessons.value.filter(l => l.id !== lessonId)
         } catch (err) {
             console.error('Delete lesson error:', err)
